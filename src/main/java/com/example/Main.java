@@ -2,13 +2,13 @@ package com.example;
 
 public class Main {
 
-    static Memoizer1 m1 = null ;
+    static Memoizer m1 = null ;
 
     public static void main(String args[]) {
         long t = System.currentTimeMillis();
         String s = "6";
         ExpensiveFunction ef = new ExpensiveFunction();
-        m1 = new Memoizer1(ef);
+        m1 = new Memoizer(ef);
         ClientThreads ct = new ClientThreads("3");
         ClientThreads ct1 = new ClientThreads("4");
         ClientThreads ct2 = new ClientThreads("3");

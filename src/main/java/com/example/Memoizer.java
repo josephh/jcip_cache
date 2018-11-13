@@ -2,16 +2,16 @@ package com.example;
 
 import net.jcip.annotations.GuardedBy;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class Memoizer1<A, V> implements Computable {
+public class Memoizer<A, V> implements Computable {
 
     @GuardedBy("this")
-    private final Map<A, V> cache = new HashMap<>();
+    private final Map<A, V> cache = new ConcurrentHashMap<>();
     private final Computable<A, V> c;
 
-    public Memoizer1(Computable<A, V> c) {
+    public Memoizer(Computable<A, V> c) {
         this.c = c;
     }
 
