@@ -28,9 +28,9 @@ public class Memoizer<A, V> implements Computable {
 //                }
 //            }
 //            FutureTask<V> ft = new FutureTask<>(eval);
-            /** The above verbose code - defining a Callable object and passing it
+            /** The above code - defining a Callable object and passing it
              * to the FutureTask constructor, can be rewritten more concisely with
-             * a lambda directly in the FutureTask constructor.
+             * a lambda directly in the FutureTask constructor, as follows...
              */
             FutureTask<V> ft = new FutureTask<>(() -> {
                 System.out.println(a +  " factorial not cached...computing");
@@ -38,9 +38,6 @@ public class Memoizer<A, V> implements Computable {
             });
             f = ft;
             cache.put(a, ft);  // the future (rather than a known result) goes in the cache
-            ft.run();
-            f = ft;
-            cache.put(a, ft);
             ft.run();
         }
         try{
