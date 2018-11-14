@@ -17,33 +17,31 @@ public class Memoizer<A, V> implements Computable {
 
     @Override
     public V compute(Object arg) throws InterruptedException {
-        Future<V> f = cache.get(arg);
-        A a = (A) arg;
-        if(f == null) {
-//            Callable<V> eval = new Callable<V>() {
-//                @Override
-//                public V call() throws Exception {
-//                    System.out.println(a +  " factorial not cached...computing");
-//                    return c.compute(a);
-//                }
-//            }
-//            FutureTask<V> ft = new FutureTask<>(eval);
-            /** The above code - defining a Callable object and passing it
-             * to the FutureTask constructor, can be rewritten more concisely with
-             * a lambda directly in the FutureTask constructor, as follows...
-             */
-            FutureTask<V> ft = new FutureTask<>(() -> {
-                System.out.println(a +  " factorial not cached...computing");
-                return c.compute(a);
-            });
-            f = ft;
-            cache.put(a, ft);  // the future (rather than a known result) goes in the cache
-            ft.run();
-        }
-        try{
-            return f.get();
-        } catch (ExecutionException e) {
-            throw launderException(e.getCause());
+        while (true) {
+            A a = (A) arg;
+            Future<V> f = cache.get(a);
+            if (f == null) {
+                FutureTask<V> ft = new FutureTask<>(() -> {
+                    System.out.println(a + " factorial not cached...computing");
+                    return c.compute(a);
+                });
+                f = cache.putIfAbsent(a, ft); // atomic!
+                if (f == null) {   /** ConcurrentHashMap.putIfAbsent(x, y)
+                                    * returns 'the previous value associated with the
+                                    * specified key, or null if there was no mapping
+                                    * for the key.'
+                                    */
+                    f = ft; // the future is now the FutureTask just registered in the cache
+                    ft.run();
+                }
+            }
+            try {
+                return f.get();  // blocks until done...
+            } catch (CancellationException ce) {
+                cache.remove(a); // unregister a failed task to avoid cache 'pollution'
+            } catch (ExecutionException e) {
+                launderException(e.getCause());
+            }
         }
     }
 
